@@ -17,7 +17,7 @@
     select,input[type="date"]{width:100%;padding:8px;border:none;font-size:15px;color:#333;outline:none;background:transparent;cursor:pointer;}
     button{display:block;width:100%;margin-top:30px;padding:14px;background:linear-gradient(90deg,#007BFF,#0056b3);color:white;font-size:18px;border:none;border-radius:8px;cursor:pointer;transition:opacity .3s;}
     button:hover{opacity:0.9;}
-    .result{margin-top:30px;padding:20px;background-color:#eaf4ff;border-left:5px solid #007BFF;border-radius:8px;font-size:15px;white-space:normal;}
+    .result{margin-top:30px;padding:20px;background-color:#eaf4ff;border-left:5px solid #007BFF;border-radius:8px;font-size:15px;white-space:pre-line;}
 </style>
 </head>
 <body>
@@ -263,9 +263,9 @@ function showResult(){
 
 }else if(onlineChannel==="线上非授权"){
     result = "<span style='color:red;font-weight:bold;'>线上非授权建议客户联系购买渠道，若客户要求DJI处理，正常拒绝客户，拒绝三次不认可升级客诉</span>\n\n" +
-             "第一次婉拒：\n您好，查询到您所购买的产品来自非官方授权店铺。为了确保您能享受到最佳的售后服务和保障，我们建议您先联系购买店铺进行咨询和处理。感谢您的理解。\n\n" +
-             "第二次婉拒：\n非常抱歉，由于您的订单并非通过 DJI 官方渠道购买，我们确实无法为您处理补差价的请求。同时后续我们建议您通过官方授权渠道选购产品，这样可以享受到更丰富的促销活动和官方售后服务。感谢您的理解与支持。\n\n" +
-             "第三次婉拒，不接受即可升级客诉：\n非常抱歉当前无法为您解决您的问题，也希望您能谅解。为了更好地为您解决问题，请您提供您的姓名和联系方式，我们将反馈至服务专员跟进。服务专员将在 1-2 个工作日内与您电话联系，感谢您的支持与理解。\n\n" +
+            "第一次婉拒：\n您好，查询到您所购买的产品来自非官方授权店铺。为了确保您能享受到最佳的售后服务和保障，我们建议您先联系购买店铺进行咨询和处理。感谢您的理解。\n\n" +
+            "第二次婉拒：\n非常抱歉，由于您的订单并非通过 DJI 官方渠道购买，我们确实无法为您处理补差价的请求。同时后续我们建议您通过官方授权渠道选购产品，这样可以享受到更丰富的促销活动和官方售后服务。感谢您的理解与支持。\n\n" +
+            "第三次婉拒，不接受即可升级客诉：\n非常抱歉当前无法为您解决您的问题，也希望您能谅解。为了更好地为您解决问题，请您提供您的姓名和联系方式，我们将反馈至服务专员跟进。服务专员将在 1-2 个工作日内与您电话联系，感谢您的支持与理解。\n\n" +
              "<span style='color:red;font-weight:bold;'>注：搜集客户姓名、电话、客及客户信息升级客诉（客诉标签选择：电商-活动争议）。</span>";
 }
 else if(onlineChannel==="线上授权"){
