@@ -46,6 +46,7 @@
             <option value="官方渠道">官方渠道（大疆商城、京东自营、京东官方旗舰店，天猫/抖音/小红书/拼多多/微信小店-大疆创新官方旗舰店）</option>
             <option value="线上授权">线上授权（如：天猫-朋来客数码专营店；京东-朋来客数码专营店/大疆智选专卖店；得物-带品牌专供标志；拼多多-DJI大疆非凡世纪专卖店）</option>
             <option value="线上非授权">线上非授权（除了官方渠道、线上授权店铺，其他线上店铺均为非授权店铺）</option>
+            <option value="官网商城-翻新机">官网商城-翻新机</option>
         </select>
     </div>
 
@@ -63,6 +64,38 @@
         <div class="label">客户申请价保时间</div>
         <input type="date" id="applyDate">
     </div>
+
+
+
+<!-- 翻新机：产品选择，复用已有 productBox -->
+<!-- 翻新机：版本选择 -->
+<div class="select-box" id="versionBox" style="display:none;">
+  <div class="label">选择版本（翻新机）</div>
+  <select id="version">
+    <option value="">请选择</option>
+  </select>
+</div>
+
+<!-- 翻新机：订单支付时间（下拉区间） -->
+<div class="select-box" id="refurbPayRangeBox" style="display:none;">
+  <div class="label">订单支付时间（翻新机-区间）</div>
+  <select id="refurbPayRange">
+    <option value="">请选择</option>
+    <option value="afterOct9">10月9日0点之后</option>
+    <option value="Sept17_to_Oct8">9月17日0点-10月8日 24点</option>
+    <option value="beforeSept16">9月16日及之前的订单</option>
+  </select>
+</div>
+
+<!-- 翻新机：客户申请价保时间（下拉区间） -->
+<div class="select-box" id="refurbApplyRangeBox" style="display:none;">
+  <div class="label">客户申请价保时间（翻新机-区间）</div>
+  <select id="refurbApplyRange">
+    <option value="">请选择</option>
+    <!-- 选项将随“支付时间区间”和“产品”联动填充 -->
+  </select>
+</div>
+
 
     <div class="select-box" id="offlineChannelBox" style="display:none;">
         <div class="label">购买渠道（线下）</div>
@@ -108,6 +141,118 @@
 <script>
 // ----- 数据部分 -----
 let currentChannel = "线上";
+
+
+// 翻新机产品选项
+const refurbProducts = [
+  { value: "OA4R", label: "OA4 翻新机" },
+  { value: "OA5PR", label: "OA5 Pro 翻新机" },
+  { value: "OP3R", label: "OP3 翻新机" }
+];
+
+// 翻新机版本选项映射
+const refurbVersions = {
+  "OA4R": [
+    { value: "OA4STD_R", label: "Osmo Action 4 标准套装 翻新机" },
+    { value: "OA4ALL_R", label: "Osmo Action 4 全能套装 翻新机" }
+  ],
+  "OA5PR": [
+    { value: "OA5P_STD_R", label: "Osmo Action 5 Pro 标准套装 翻新机" },
+    { value: "OA5P_CH_R", label: "Osmo Action 5 Pro 畅拍套装 翻新机" }
+  ],
+  "OP3R": [
+    { value: "OP3_STD_R", label: "Osmo Pocket 3 翻新机" },
+    { value: "OP3_ALL_R", label: "Osmo Pocket 3 全能套装 翻新机" }
+  ]
+};
+
+// 翻新机补偿金额（双11活动期可退差）
+const refurbCompAfterOct9 = {
+  "OA4STD_R": 804, "OA4ALL_R": 810,
+  "OA5P_STD_R": 640, "OA5P_CH_R": 896,
+  "OP3_STD_R": 594, "OP3_ALL_R": 764
+};
+
+// 翻新机灰度补偿金额（9/17-10/8期间）
+const refurbCompSept17ToOct8 = {
+  "OP3_STD_R": { type: "cash", amount: 356 },
+  "OP3_ALL_R": { type: "cash", amount: 458 },
+  "OA5P_STD_R": { type: "cash", amount: 384 },
+  "OA5P_CH_R": { type: "cash", amount: 538 },
+  // OA4 翻新机为优惠券
+  "OA4STD_R": { type: "coupon", amount: 400, max: true },
+  "OA4ALL_R": { type: "coupon", amount: 400, max: true }
+};
+
+// 翻新机参考话术（简化整合）
+const refurbTalk = {
+  afterOct9: `请您放心哈，双11活动期 2025年10月9日 00:00 至 11月14日 23:59:59 支付的订单，可价保至 11月21日 23:59:59。
+您可以进入「我的订单>申请售后>仅退款>退差价」申请价保。差价将会在2-7个工作日原路退还到您的支付账户，请您留意查收哦~`,
+  refuse7days: `店铺是提供 7 天价保服务的，查看到目前您的订单支付时间距离申请价保时间已经超过 7 天（7×24小时），已经超过了店铺的价保周期，实在是抱歉呢`,
+  grayCompCash: amount => `看到您的购买时间确实不久，考虑到您的购物体验，我为您特殊申请了补偿方案，可以为您提供 ${amount} 元现金补偿，您可以灵活购买需要的配件或自由支配，您看可以吗？`,
+  grayCompCoupon: amount => `看到您的购买时间确实不久，考虑到您的购物体验，我为您特殊申请了补偿方案，可以为您提供 ${amount} 元商城优惠券，您可以灵活购买需要的配件或产品，您看可以吗？`,
+  reBuy: `同为消费者非常理解您的心情，如您产品签收时间次日起计算在 30 天内，并符合店铺退货要求，建议您这边申请下退货退款，再重新以活动价购买，您看这样可以吗？`,
+  beforeSept16: `9月17日0点-10月8日 24点支付的订单：
+① 优先婉拒解释价保政策，安抚客户
+② 不接受，使用灰度处理方案
+③ 如仍不接受，如签收30天内可退货重拍
+
+9月17日0点之前支付的订单：
+【处理原则】
+1. 价保专线需直接处理闭环价保问题。
+2. 如遇到明确表示恶意霸线场景（霸线≥15分钟），按如下思路和沟通节奏处理，然后走礼貌挂机流程（需报备TL审批，TL审批后登记至：https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA）。
+3. 升级客诉规范：
+① 无风险场景尽量拦截，按照话术及方案澄清价保原则，告知有方案/无方案，不升级客诉。
+② 如遇如下场景，可升级客诉处理（注：搜集客户姓名、电话、及客户信息升级客诉（客诉标签选择：电商-活动争议））。
+
+【参考话术】
+第一次沟通--5分钟预警话术：XX先生/女士，您的心情我完全理解……由于您的订单已超过价保政策时间太久，遗憾无法为您提供价保服务或退差价，辛苦理解。
+
+第二次主导沟通--10分钟再次强调价保话术：非常理解您的心情……订单已经超出双11活动价保时效很长时间了，抱歉确实无法为您提供价保服务或退差价。
+
+第三次礼貌挂机--15分钟礼貌挂机：我们非常希望能协助您解决问题，但目前您的订单因超过价保时效很久，无法再进行价保……祝您生活愉快，再见。`
+};
+
+// 翻新机申请价保时间区间联动（随“订单支付时间”和“产品”变化）
+function updateRefurbApplyRanges(product, payRange) {
+  const applySel = document.getElementById('refurbApplyRange');
+  applySel.innerHTML = '<option value="">请选择</option>';
+
+  if (payRange === 'afterOct9') {
+    const opt = document.createElement('option');
+    opt.value = 'apply_afterOct9';
+    opt.textContent = '2025年10月9日 00:00 至 11月21日 23:59:59';
+    applySel.appendChild(opt);
+    return;
+  }
+
+  if (payRange === 'Sept17_to_Oct8') {
+    if (product === 'OA4R') {
+      const opt = document.createElement('option');
+      opt.value = 'apply_OA4_30days';
+      opt.textContent = '订单签收次日起30天内（可提供DJI商城优惠券）';
+      applySel.appendChild(opt);
+    } else {
+      const opt = document.createElement('option');
+      opt.value = 'apply_OA5OP3_window';
+      opt.textContent = '2025年10月17日 12:00 至 11月14日 24:00';
+      applySel.appendChild(opt);
+    }
+    return;
+  }
+
+  if (payRange === 'beforeSept16') {
+    const opt = document.createElement('option');
+    opt.value = 'apply_over30';
+    opt.textContent = '超30天无价保';
+    applySel.appendChild(opt);
+    return;
+  }
+}
+
+
+
+
 const onlineProducts = [
     {value:"OP3标准版",label:"Osmo Pocket 3 - 标准版、VLOG"},
     {value:"OP3全能套装",label:"Osmo Pocket 3 - 全能套装"},
@@ -877,171 +1022,368 @@ function updateOfflineChannelOptions(product) {
     }
 }
 
-// 监听线下产品选择变化
-document.getElementById('product').addEventListener('change', function() {
-    if (currentChannel === "线下") {
-        updateOfflineChannelOptions(this.value);
-    }
+document.getElementById('product').addEventListener('change', function(){
+  if (document.getElementById('onlineChannel').value === '官网商城-翻新机') {
+    const productVal = this.value;
+    const versionSel = document.getElementById('version');
+    versionSel.innerHTML = '<option value="">请选择</option>';
+    (refurbVersions[productVal] || []).forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.value;
+      opt.textContent = v.label;
+      versionSel.appendChild(opt);
+    });
+    // 根据当前支付区间联动申请区间
+    const payRangeVal = document.getElementById('refurbPayRange').value;
+    updateRefurbApplyRanges(productVal, payRangeVal);
+  } else if (currentChannel === '线下') {
+    updateOfflineChannelOptions(this.value);
+  }
 });
+
+
+document.getElementById('refurbPayRange').addEventListener('change', function(){
+  if (document.getElementById('onlineChannel').value === '官网商城-翻新机') {
+    const productVal = document.getElementById('product').value;
+    updateRefurbApplyRanges(productVal, this.value);
+  }
+});
+
+
 
 // 切换时重置结果显示
 document.getElementById('output').style.display = 'none';
 document.getElementById('output').innerHTML = '';
 
 function setChannel(channel) {
-    const outputBox = document.getElementById('output');
-    outputBox.innerHTML = '';
-    outputBox.style.display = 'none';
-    currentChannel = channel;
-    
-    document.getElementById('btnOnline').classList.toggle('active', channel === '线上');
-    document.getElementById('btnOffline').classList.toggle('active', channel === '线下');
-    document.getElementById('btnSpecial').classList.toggle('active', channel === '特殊场景');
+  const outputBox = document.getElementById('output');
+  outputBox.innerHTML = '';
+  outputBox.style.display = 'none';
 
-    // 1. 线上
-    if (channel === "线上") {
-        document.getElementById('onlineChannelBox').style.display = 'block';
-        document.getElementById('offlineChannelBox').style.display = 'none';
-        document.getElementById('offlineDateRangeBox').style.display = 'none';
-        document.getElementById('productBox').style.display = 'none';
-        document.getElementById('payDateBox').style.display = 'none';
-        document.getElementById('applyDateBox').style.display = 'none';
-        document.getElementById('specialBox').style.display = 'none';
-        
-        // 如果当前线上渠道已经是官方渠道，直接加载控件
-        if (document.getElementById('onlineChannel').value === '官方渠道') {
-            updateProductOptions(onlineProducts);
-            document.getElementById('productBox').style.display = 'block';
-            document.getElementById('payDateBox').style.display = 'block';
-            document.getElementById('applyDateBox').style.display = 'block';
-        }
+  currentChannel = channel;
 
-    // 2. 线下
-    } else if (channel === "线下") {
-        document.getElementById('onlineChannelBox').style.display = 'none';
-        document.getElementById('productBox').style.display = 'block';
-        document.getElementById('payDateBox').style.display = 'none';
-        document.getElementById('applyDateBox').style.display = 'none';
-        document.getElementById('offlineChannelBox').style.display = 'block';
-        document.getElementById('offlineDateRangeBox').style.display = 'block';
-        document.getElementById('specialBox').style.display = 'none';
-        updateProductOptions(offlineProducts);
+  // 顶部按钮态
+  document.getElementById('btnOnline').classList.toggle('active', channel === '线上');
+  document.getElementById('btnOffline').classList.toggle('active', channel === '线下');
+  document.getElementById('btnSpecial').classList.toggle('active', channel === '特殊场景');
 
-    // 3. 特殊场景
-    } else if (channel === "特殊场景") {
-        document.getElementById('onlineChannelBox').style.display = 'none';
-        document.getElementById('offlineChannelBox').style.display = 'none';
-        document.getElementById('offlineDateRangeBox').style.display = 'none';
-        document.getElementById('productBox').style.display = 'none';
-        document.getElementById('payDateBox').style.display = 'none';
-        document.getElementById('applyDateBox').style.display = 'none';
-        document.getElementById('specialBox').style.display = 'block';
+  if (channel === "线上") {
+    // 显示线上渠道盒子，隐藏线下与特殊场景盒子
+    document.getElementById('onlineChannelBox').style.display = 'block';
+    document.getElementById('offlineChannelBox').style.display = 'none';
+    document.getElementById('offlineDateRangeBox').style.display = 'none';
+    document.getElementById('specialBox').style.display = 'none';
+
+    // 默认隐藏产品与时间控件（按渠道二次显示）
+    document.getElementById('productBox').style.display = 'none';
+    document.getElementById('payDateBox').style.display = 'none';
+    document.getElementById('applyDateBox').style.display = 'none';
+    document.getElementById('versionBox').style.display = 'none';
+    document.getElementById('refurbPayRangeBox').style.display = 'none';
+    document.getElementById('refurbApplyRangeBox').style.display = 'none';
+
+    const val = document.getElementById('onlineChannel').value;
+
+    if (val === '官方渠道') {
+      updateProductOptions(onlineProducts);
+      document.getElementById('productBox').style.display = 'block';
+      document.getElementById('payDateBox').style.display = 'block';
+      document.getElementById('applyDateBox').style.display = 'block';
+    } else if (val === '官网商城-翻新机') {
+      updateProductOptions(refurbProducts);
+      document.getElementById('productBox').style.display = 'block';
+      document.getElementById('versionBox').style.display = 'block';
+      document.getElementById('refurbPayRangeBox').style.display = 'block';
+      document.getElementById('refurbApplyRangeBox').style.display = 'block';
     }
+
+  } else if (channel === "线下") {
+    document.getElementById('onlineChannelBox').style.display = 'none';
+    document.getElementById('productBox').style.display = 'block';
+    document.getElementById('payDateBox').style.display = 'none';
+    document.getElementById('applyDateBox').style.display = 'none';
+    document.getElementById('offlineChannelBox').style.display = 'block';
+    document.getElementById('offlineDateRangeBox').style.display = 'block';
+    document.getElementById('specialBox').style.display = 'none';
+    document.getElementById('versionBox').style.display = 'none';
+    document.getElementById('refurbPayRangeBox').style.display = 'none';
+    document.getElementById('refurbApplyRangeBox').style.display = 'none';
+    updateProductOptions(offlineProducts);
+
+  } else if (channel === "特殊场景") {
+    document.getElementById('onlineChannelBox').style.display = 'none';
+    document.getElementById('offlineChannelBox').style.display = 'none';
+    document.getElementById('offlineDateRangeBox').style.display = 'none';
+    document.getElementById('productBox').style.display = 'none';
+    document.getElementById('payDateBox').style.display = 'none';
+    document.getElementById('applyDateBox').style.display = 'none';
+    document.getElementById('versionBox').style.display = 'none';
+    document.getElementById('refurbPayRangeBox').style.display = 'none';
+    document.getElementById('refurbApplyRangeBox').style.display = 'none';
+    document.getElementById('specialBox').style.display = 'block';
+  }
 }
-document.getElementById('onlineChannel').addEventListener('change',function(){
-    // 每次切换购买渠道时清空结果
-    const outputBox = document.getElementById('output');
-    outputBox.innerHTML = '';
-    outputBox.style.display = 'none';
+document.getElementById('onlineChannel').addEventListener('change', function(){
+  const outputBox = document.getElementById('output');
+  outputBox.innerHTML = '';
+  outputBox.style.display = 'none';
 
-    if(this.value==='官方渠道'){
-        updateProductOptions(onlineProducts);
-        document.getElementById('productBox').style.display='block';
-        document.getElementById('payDateBox').style.display='block';
-        document.getElementById('applyDateBox').style.display='block';
-    }else{
-        document.getElementById('productBox').style.display='none';
-        document.getElementById('payDateBox').style.display='none';
-        document.getElementById('applyDateBox').style.display='none';
-    }
+  const channelVal = this.value;
+
+  if (channelVal === '官方渠道') {
+    updateProductOptions(onlineProducts);
+    document.getElementById('productBox').style.display='block';
+    document.getElementById('payDateBox').style.display='block';
+    document.getElementById('applyDateBox').style.display='block';
+    // 翻新机控件隐藏
+    document.getElementById('versionBox').style.display='none';
+    document.getElementById('refurbPayRangeBox').style.display='none';
+    document.getElementById('refurbApplyRangeBox').style.display='none';
+    return;
+  }
+
+  if (channelVal === '官网商城-翻新机') {
+    // 加载翻新机产品&版本，下拉区间
+    updateProductOptions(refurbProducts);
+    document.getElementById('productBox').style.display='block';
+    document.getElementById('versionBox').style.display='block';
+    // 日期选择器隐藏，翻新机区间选择显示
+    document.getElementById('payDateBox').style.display='none';
+    document.getElementById('applyDateBox').style.display='none';
+    document.getElementById('refurbPayRangeBox').style.display='block';
+    document.getElementById('refurbApplyRangeBox').style.display='block';
+    return;
+  }
+
+  // 其他线上渠道（授权/非授权）：不需要产品/日期/翻新机控件
+  document.getElementById('productBox').style.display = 'none';
+  document.getElementById('payDateBox').style.display='none';
+  document.getElementById('applyDateBox').style.display='none';
+  document.getElementById('versionBox').style.display='none';
+  document.getElementById('refurbPayRangeBox').style.display='none';
+  document.getElementById('refurbApplyRangeBox').style.display='none';
 });
 
 
+// 在线方案编码（灰度补偿）映射，按版本区分
+const refurbOnlineCodes = {
+  "OP3_STD_R": "【P3翻新标准灰度9.17-10.8】",
+  "OP3_ALL_R": "【P3翻新全能灰度9.17-10.8】",
+  "OA5P_STD_R": "【】",
+  "OA5P_CH_R":  "",
+  "OA4STD_R":   "",
+  "OA4ALL_R":   ""
+};
+
+// 只展示当前“所选产品/版本”的三段式（9/17~10/8）
+function buildRefurbSept917ToOct8HTML() {
+  const productVal = document.getElementById('product').value;
+  const versionVal = document.getElementById('version').value;
+  if (!productVal || !versionVal) {
+    alert("请先选择产品与版本！");
+    return "";
+  }
+
+  const productText = document.querySelector('#product option:checked') ? document.querySelector('#product option:checked').textContent : '';
+  const versionText = document.querySelector('#version option:checked') ? document.querySelector('#version option:checked').textContent : '';
+
+  // 找该版本的灰度补偿配置
+  const comp = refurbCompSept17ToOct8[versionVal];
+  // 在线方案编码（灰度）标签
+  const grayCode = refurbOnlineCodes[versionVal] || "";
+
+  // 第二段内容（灰度补偿）——根据版本决定现金或优惠券
+  let grayCompText = "";
+  let grayCompTalk = "";
+  if (comp) {
+    grayCompText = comp.type === 'cash'
+      ? `现金 ${comp.amount} 元`
+      : `≤${comp.amount} 元 DJI 商城优惠券`;
+    grayCompTalk = comp.type === 'cash'
+      ? refurbTalk.grayCompCash(comp.amount)
+      : refurbTalk.grayCompCoupon(comp.amount);
+  } else {
+    grayCompText = "（该版本暂无灰度补偿配置）";
+    grayCompTalk = "该版本暂未配置灰度补偿，请确认版本选择或联系维护人员。";
+  }
+
+// 第一段：优先婉拒
+const block1 = `
+  <div style="border:1px solid #cce5ff;border-radius:8px;padding:12px;background:#f8fbff;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-weight:700;color:#0056b3;">价保方案（优先婉拒客户诉求）</div>
+    </div>
+    <div style="margin-top:8px;">
+      <b>参考话术：</b><br>${refurbTalk.refuse7days}
+
+    </div>
+  </div>
+`;
+
+  // 第二段：如客户不接受（只展示当前选择的产品/版本）
+const block2 = `
+  <div style="margin-top:12px;border:1px solid #fde68a;border-radius:8px;padding:12px;background:#fffbeb;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-weight:700;color:#b45309;">如客户不接受（灰度补偿方案）</div>
+      ${ grayCode ? `<span style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:12px;border:1px solid #f59e0b;color:#b45309;background:#fff7ed;">${grayCode}</span>` : `` }
+    </div>
+    <div><b>补偿方案：</b>${grayCompText}</div>
+    <div style="margin-top:6px;"><b>参考话术：</b><br>${grayCompTalk}
+      <br><br>
+      客户接受方案在云表登记商城sheet<br>
+      登记链接：<a href="https://docs.djicorp.com/weboffice/l/somxmLGcr5irO" target="_blank">
+        https://docs.djicorp.com/weboffice/l/somxmLGcr5irO
+      </a>
+    </div>
+  </div>
+`;
+
+  // 第三段：如仍不接受灰度（退货重拍）
+  const block3 = `
+    <div style="margin-top:12px;border:1px solid #cbd5e1;border-radius:8px;padding:12px;background:#f8fafc;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-weight:700;color:#0f172a;">如客户不接受灰度补偿方案（退货重拍）</div>
+        <span style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:12px;border:1px solid #94a3b8;color:#334155;background:#eef2f7;">
+        </span>
+      </div>
+      <div style="margin-top:6px;"><b>方案：</b>签收次日起 30 天内，且符合退货要求，可申请退货退款后以活动价重拍</div>
+      <div style="margin-top:6px;"><b>参考话术：</b><br>
+        同为消费者非常理解您的心情，如您产品签收时间次日起计算在 30 天内，并符合店铺退货要求，建议您这边申请下退货退款，再重新以活动价购买，您看这样可以吗？
+      </div>
+    </div>
+  `;
+
+  return block1 + block2 + block3;
+}
+
+
 function showResult(){
-    let result="";
+  let result = "";
 
-if(currentChannel === "特殊场景"){
+  // 特殊场景：显示话术
+  if (currentChannel === "特殊场景") {
     const scenario = document.getElementById('specialScenario').value;
-    if(!scenario){alert("请选择场景"); return;}
+    if (!scenario) { alert("请选择场景"); return; }
     result = specialScheme[scenario] || "暂无该场景话术";
-    document.getElementById('output').innerHTML=result;
-    document.getElementById('output').style.display='block';
+    document.getElementById('output').innerHTML = result;
+    document.getElementById('output').style.display = 'block';
     return;
+  }
+
+  if (currentChannel === "线上") {
+    const onlineChannel = document.getElementById('onlineChannel').value;
+    if (!onlineChannel) { alert("请选择线上购买渠道！"); return; }
+
+    // 1) 翻新机分支（官网商城-翻新机）
+if (onlineChannel === '官网商城-翻新机') {
+  const payRange = document.getElementById('refurbPayRange').value;
+  if (!payRange) { alert("请选择支付时间区间！"); return; }
+
+  // 只处理 9/17~10/8：两段式只展示当前选择产品/版本
+  if (payRange === 'Sept17_to_Oct8') {
+    const html = buildRefurbSept917ToOct8HTML(); // 使用上面新增的函数
+    if (!html) return; // 若未选择产品/版本，函数内部已 alert
+    const out = document.getElementById('output');
+    out.innerHTML = html;
+    out.style.display = 'block';
+    return; // 防止走到其它分支
+  }
+
+  // 其它翻新机区间（10月9日后、9月16日及之前）保持你原来的逻辑
+  const product = document.getElementById('product').value;
+  const version = document.getElementById('version').value;
+  const applyRange = document.getElementById('refurbApplyRange').value;
+  if (!product || !version || !applyRange) {
+    alert("请填写完整信息（产品、版本、申请价保时间区间）！");
+    return;
+  }
+
+  let schemeLabel = "", payTime = "", protectTime = "", compText = "", talkText = "";
+
+  if (payRange === 'afterOct9') {
+    schemeLabel = "价保双11可退差";
+    payTime = "2025年10月9日 00:00 至 11月14日 23:59:59";
+    protectTime = "2025年10月9日 00:00 至 11月21日 23:59:59";
+    const amount = refurbCompAfterOct9[version];
+    compText = `现金 ${amount} 元`;
+    talkText = refurbTalk.afterOct9;
+  } else if (payRange === 'beforeSept16') {
+    schemeLabel = "婉拒；如不接受，收集信息后升级外呼";
+    payTime = "9月16日及之前的订单";
+    protectTime = "超30天无价保";
+    compText = "无";
+    talkText = refurbTalk.beforeSept16;
+  }
+
+  const resultHtml =
+    `<div><b>价保方案：</b>${schemeLabel}</div>` +
+    `<div><b>补偿方案：</b>${compText || '无'}</div>` +
+    `<div style="margin-top:8px;"><b>参考话术：</b><br>${(talkText || '').replace(/\n/g, '<br>')}</div>`;
+
+  const out = document.getElementById('output');
+  out.innerHTML = resultHtml;
+  out.style.display = 'block';
+  return;
 }
 
+    // 2) 官方渠道分支（日期选择器）
+    if (onlineChannel === '官方渠道') {
+      const product = document.getElementById('product').value;
+      const payDateStr = document.getElementById('payDate').value;
+      const applyDateStr = document.getElementById('applyDate').value;
+      if (!product || !payDateStr || !applyDateStr) { alert("请填写完整信息！"); return; }
 
-    if(currentChannel==="线上"){
-        const onlineChannel=document.getElementById('onlineChannel').value;
-        if(!onlineChannel){alert("请选择线上购买渠道！");return;}
-if (onlineChannel === "官方渠道") {
-    const product = document.getElementById('product').value;
-    const payDate = new Date(document.getElementById('payDate').value);
-    const applyDate = new Date(document.getElementById('applyDate').value);
-    if (!product || isNaN(payDate) || isNaN(applyDate)) {
-        alert("请填写完整信息！");
+      const payDate = new Date(payDateStr);
+      const applyDate = new Date(applyDateStr);
+      if (isNaN(payDate) || isNaN(applyDate)) { alert("日期格式不正确！"); return; }
+      if (applyDate < payDate) { alert("申请时间早于支付时间"); return; }
+
+      // 10月9日活动已开启不涉及价保
+      const activityCutoff = new Date(payDate.getFullYear(), 9, 9, 0, 0, 0); // 10月索引为9
+      if (payDate >= activityCutoff) {
+        const msg = "10月9日活动已开启不涉及价保";
+        const outputBox = document.getElementById('output');
+        outputBox.innerText = msg;
+        outputBox.style.display = 'block';
         return;
-    }
-    if (applyDate < payDate) {
-        alert("申请时间早于支付时间");
-        return;
-    }
+      }
 
+      const diffDays = Math.ceil((applyDate - payDate) / (1000 * 60 * 60 * 24)); // 修复这里
+      const year = payDate.getFullYear();
+      const specialPayStart = new Date(year, 8, 9, 0, 0, 0);      // 9月（索引8）
+      const specialApplyEnd = new Date(year, 10, 13, 23, 59, 59); // 11月（索引10）
 
-            // NEW: 10 月 9 日活动已开启不涉及价保（按订单所属站点时间 00:00:00 判定）
-            const activityCutoff = new Date(payDate.getFullYear(), 9, 9, 0, 0, 0); // 月份索引从 0 开始，9 表示 10 月
-            if (payDate >= activityCutoff) {
-                const msg = "10月9日活动已开启不涉及价保";
-                const outputBox = document.getElementById('output');
-                outputBox.innerText = msg; // 同步展示到结果区
-                outputBox.style.display = 'block';
-                return; // 直接返回，不再进入价保方案判断
-            }
-
-
-
-    let diffDays = Math.ceil((applyDate - payDate) / (1000 * 60 * 60 * 24));
-
-    // 限定时间区间
-    let year = payDate.getFullYear(); // 当前订单年份
-    let specialPayStart = new Date(year, 8, 9, 0, 0, 0);       // 9月是索引8
-    let specialApplyEnd = new Date(year, 10, 13, 23, 59, 59);  // 11月是索引10
-
-    let timeRange;
-    if (payDate >= specialPayStart && applyDate <= specialApplyEnd) {
-        // 在活动支付时间 + 申请时间截止范围内
-        if (diffDays <= 7) {
-            timeRange = "7天内";   // 仍走 7天规则
-        } else {
-            timeRange = "8-30天"; // 超 7天一律按 8-30天
-        }
-    } else {
-        // 原有逻辑
+      let timeRange;
+      if (payDate >= specialPayStart && applyDate <= specialApplyEnd) {
+        timeRange = diffDays <= 7 ? "7天内" : "8-30天";
+      } else {
         timeRange = diffDays <= 7 ? "7天内" : (diffDays <= 30 ? "8-30天" : "30天以上");
+      }
+
+      result = onlineScheme[product]?.[timeRange] || "无匹配方案";
+
+      if (timeRange === "8-30天") {
+        result +=
+          "\n\n【现金处理说明】：\n" +
+          "京东旗舰店登记表格，会有售后同事打款到客户京东账户\n" +
+          "京东自营：优先引导客户联系京东平台客服，平台客服会直接退差，若客户不愿意联系登记表格，会在时效内打款到客户的京东账户。时效：3-5个工作日\n" +
+          "官网商城：根据支付方式原路退回\n" +
+          "天猫/抖音/拼多多/小红书/微信小店：直接引导客户在平台-我的订单内申请-仅退款-退运费，会有售后同事操作退款\n" +
+          "时效：3-5天\n\n" +
+          "【赠品处理说明】：\n" +
+          "所有渠道登记表格后,会有专员安排赠品补发\n" +
+          "时效：3-5天\n\n" +
+          "登记链接：https://docs.djicorp.com/weboffice/l/somxmLGcr5irO";
+      }
+
+      document.getElementById('output').innerHTML = result;
+      document.getElementById('output').style.display = 'block';
+      return;
     }
 
-    result = onlineScheme[product]?.[timeRange] || "无匹配方案";
-
-
-
-
-// 调整为新的现金/赠品说明与登记链接
-if (timeRange === "8-30天") {
-  result +=
-    "\n\n【现金处理说明】：\n" +
-    "京东旗舰店登记表格，会有售后同事打款到客户京东账户\n" +
-    " 京东自营：优先引导客户联系京东平台客服，平台客服会直接退差，若客户不愿意联系登记表格，会在时效内打款到客户的京东账户。时效：3-5个工作日\n" +
-    "官网商城：根据支付方式原路退回\n" +
-    "天猫/抖音/拼多多/小红书/微信小店：直接引导客户在平台-我的订单内申请-仅退款-退运费，会有售后同事操作退款\n" +
-    "时效：3-5天\n\n" +
-    "【赠品处理说明】：\n" +
-    "所有渠道登记表格后,会有专员安排赠品补发\n" +
-    "时效：3-5天\n\n" +
-    "登记链接：https://docs.djicorp.com/weboffice/l/somxmLGcr5irO";
-}
-
-
-} else if (onlineChannel === "线上非授权") {
-    result = `
+    // 3) 线上非授权 / 线上授权 分支（保持你的原文案）
+    if (onlineChannel === "线上非授权") {
+      result = `
 建议客户联系购买渠道，若客户要求我们处理，正常拒绝客户，可参考以下流程。<br>
 <span style='color:red;font-weight:bold;'>【处理原则】</span><br>
 1. 价保专线需直接处理闭环价保问题。<br>
@@ -1060,9 +1402,13 @@ if (timeRange === "8-30天") {
 <span style='color:red;font-weight:bold;'>第三次礼貌挂机--15分钟礼貌挂机：</span>
 明白您的诉求，我们也非常希望能协助您。但非官方渠道购买的产品，我们确实无法为您处理价保需求。还是麻烦您和店铺直接联系，这样能尽量节省您的时间，您的诉求也能得到尽快处理。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。
 `;
+      document.getElementById('output').innerHTML = result;
+      document.getElementById('output').style.display = 'block';
+      return;
+    }
 
-} else if (onlineChannel === "线上授权") {
-    result = `
+    if (onlineChannel === "线上授权") {
+      result = `
 建议客户联系购买渠道，若客户要求我们处理，正常拒绝客户，可参考以下流程。<br>
 <span style='color:red;font-weight:bold;'>【处理原则】</span><br>
 1. 价保专线需直接处理闭环价保问题。<br>
@@ -1081,17 +1427,21 @@ if (timeRange === "8-30天") {
 <span style='color:red;font-weight:bold;'>第三次礼貌挂机--15分钟礼貌挂机：</span>
 明白您的诉求，我们也非常希望能协助您。但非官方渠道购买的产品，我们确实无法为您处理价保需求。还是麻烦您和店铺直接联系，这样能尽量节省您的时间，您的诉求也能得到尽快处理。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。
 `;
-
-}
-    }else{
-        const product=document.getElementById('product').value;
-        const offlineChannel=document.getElementById('offlineChannel').value;
-        const offlineDateRange=document.getElementById('offlineDateRange').value;
-        if(!product||!offlineChannel||!offlineDateRange){alert("请选择完整信息！");return;}
-        result=offlineScheme[product]?.[offlineChannel]?.[offlineDateRange]||"无匹配方案";
+      document.getElementById('output').innerHTML = result;
+      document.getElementById('output').style.display = 'block';
+      return;
     }
-    document.getElementById('output').innerHTML=result;
-    document.getElementById('output').style.display='block';
+
+  } else {
+    // 线下
+    const product = document.getElementById('product').value;
+    const offlineChannel = document.getElementById('offlineChannel').value;
+    const offlineDateRange = document.getElementById('offlineDateRange').value;
+    if (!product || !offlineChannel || !offlineDateRange) { alert("请选择完整信息！"); return; }
+    result = offlineScheme[product]?.[offlineChannel]?.[offlineDateRange] || "无匹配方案";
+    document.getElementById('output').innerHTML = result;
+    document.getElementById('output').style.display = 'block';
+  }
 }
 
 setChannel('线上');
