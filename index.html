@@ -8,10 +8,15 @@
     body{font-family:'Segoe UI',Helvetica,Arial,sans-serif;background-color:#f0f4f8;margin:0;padding:0;color:#333;}
     .container{max-width:960px;margin:40px auto;background:white;padding:30px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);position:relative;}
     h1{color:#007BFF;font-weight:600;text-align:center;margin-bottom:20px;}
-    .channel-switch{position:absolute;top:30px;right:30px;display:flex;gap:10px;}
+    .channel-switch{position:absolute;top:30px;right:40px;display:flex;gap:10px;}
     .switch-btn{padding:8px 16px;border-radius:20px;border:2px solid #007BFF;background-color:white;color:#007BFF;cursor:pointer;transition:all .3s;font-weight:bold;}
     .switch-btn.active{background-color:#007BFF;color:white;}
     .switch-btn:hover{background-color:#0056b3;color:white;}
+
+.container {
+    padding-top: 80px;  
+}
+
 
 .result div {
   margin-top: 2px !important;
@@ -36,6 +41,7 @@
     <div class="channel-switch">
         <div class="switch-btn active" id="btnOnline" onclick="setChannel('线上')">线上</div>
         <div class="switch-btn" id="btnOffline" onclick="setChannel('线下')">线下</div>
+ <div class="switch-btn" id="btnL2" onclick="setChannel('客诉L2外呼')">客诉L2外呼</div>
 <div class="switch-btn" id="btnSpecial" onclick="setChannel('特殊场景')">特殊场景话术</div>
     </div>
 
@@ -125,14 +131,39 @@
 
         <option value="">请选择</option>
 
-        <option value="snRefurbished">客户咨询【5wtcn】开头的序列号SN是不是翻新机？(或：客户收到的产品外观瑕疵较多，质疑售卖翻新机，有质量问题）。如何应对？</option>
-        <option value="Customer complaint outbound calls">客诉外呼场景：产品购买超30天</option>
+        <option value="snRefurbished">客户询问 5wtcn 开头的序列号SN是不是翻新机？(或：客户收到的产品有外观瑕疵，质疑大疆售卖翻新机，存在质量问题)</option>
+        <option value="malicious abuse">若客户恶意语言中伤或辱骂，无法正常沟通，参考如下话术礼貌挂机</option>
         <option value="Official Account">部分公众号/媒体发文或报道大疆双十一降价的事情。客户 (非媒体身份) 进线咨询。如何应对？</option>
         <!-- 后续可继续加其他场景 -->
 
     </select>
-
 </div>
+
+<div class="select-box" id="l2Box" style="display:none;">
+    <div class="label">客诉L2外呼 场景选择</div>
+    
+    <!-- 提示文本 -->
+    <div style="background:#fffbea;border:1px solid #fcd34d;border-radius:6px;padding:8px;margin-bottom:10px;font-size:14px;line-height:1.6;">
+        以下内容，适用于客诉L2外呼场景。<br>
+        若是支援客诉L2外呼的同学，除了参考下边的内容，还可以查阅云文档：售前客诉活动争议场景外呼流程
+        <a href="https://docs.djicorp.com/weboffice/l/scNzhBNnOmgVr" target="_blank" style="color:#2563EB;text-decoration:underline;">
+           https://docs.djicorp.com/weboffice/l/scNzhBNnOmgVr
+        </a>
+    </div>
+    
+    <!-- 场景选择 -->
+    <select id="l2Scenario">
+        <option value="">请选择</option>
+        <option value="电话未接通">场景一：电话未接通</option>
+        <option value="电话已接通">场景二：电话已接通</option>
+        <option value="用户接受周边，但要求更多补偿">场景三：用户接受周边，但要求更多补偿</option>
+        <option value="用户接受周边礼品">场景四：用户接受周边礼品</option>
+        <option value="特殊场景--霸线客户">场景五：特殊场景--霸线客户</option>
+    </select>
+</div>
+
+
+
 
     <button onclick="showResult()">查询方案</button>
     <div id="output" class="result" style="display:none;"></div>
@@ -485,50 +516,11 @@ const specialScheme = {
 </div>
 `,
 
-"Customer complaint outbound calls": `
-<div style="color:#2563EB;font-weight:bold;">场景一. 电话未接通</div>
-<div style="color:#E67E22;font-weight:bold;">【思路】人工主动发短信</div>
+"malicious abuse": `
+<div style="color:#2563EB;font-weight:bold;">参考话术</div>
 <div style="background:#f9fafb;padding:6px;border-radius:4px;">
-【短信模板】<br>
-尊敬的客户您好，我是为您处理价保咨询的服务专员。刚才多次尝试联系您但未成功。<br>
-我们非常理解您对价格变动的关注，也很重视您的订单。但很抱歉，经过多次核查，您的订单时间已经超出活动价保周期，本次我们确实无法为您提供价保服务，衷心希望您能理解。<br>
-如果您需要其他帮助，欢迎通过“大疆”公众号联系我们，我们会竭诚为您提供服务，感谢您的支持。
-</div><br>
-
-<div style="color:#2563EB;font-weight:bold;">场景二. 电话已接通</div>
-<div style="color:#E67E22;font-weight:bold;">【思路】主动说明没有及时联系的原因并致歉。告知没价保，重点做情绪安抚。若客户抱怨联系时效，或吐槽一直没联系，请优先参考话术解释安抚。若客户不接受，可赠送品牌周边礼品</div>
-<div style="background:#f9fafb;padding:6px;border-radius:4px;">
-如下沟通话术① ② ③适用场景一致，按需使用<br><br>
-
-<b>话术①</b><br>
-XX先生/女士，您好。我是为您处理价保咨询的服务专员XXX（工号xx）。双十一的订单量比较多，咱们服务专员也是在轮班加急处理。非常抱歉没能及时跟您联系。<br>
-我们很重视您的订单，并且多次核查了相关信息。这个订单已经超出活动价保周期，我们确实无法为您提供价保服务了，衷心希望您能理解。<br><br>
-（若客户抱怨联系时效，或吐槽一直没联系，请优先参考话术解释安抚。若客户不接受，可赠送品牌周边礼品）<br>
-非常感谢您对我们的支持，我们特地为您申请了一份精美的品牌周边礼品。这边尽快为您安排邮寄。您看可以吗？<br><br>
-
-<b>话术②</b><br>
-XX先生/女士，您好。我是为您处理价保咨询的服务专员XXX（工号xx）。这边多次核实了您的订单，已经超出活动价保周期，没办法为您提供价保服务了。衷心希望您能理解。<br>
-双十一的订单量比较多，咱们服务专员也在尽全力加速处理。没能及时跟您联系，实在抱歉。<br><br>
-（若客户抱怨联系时效，或吐槽一直没联系，请优先参考话术解释安抚。若客户不接受，可赠送品牌周边礼品）<br>
-我们非常重视您的反馈，我也想为您赠送一份精美的品牌周边礼品。您看可以的话，我尽快为您安排邮寄。<br><br>
-
-<b>话术③</b><br>
-XX先生/女士，您好。我是为您处理价保咨询的服务专员XXX（工号xx）。很抱歉现在才联系您。这次活动非常火爆，服务专员也是在加班加点处理咱们客户的咨询。<br>
-这边反复核查了您的订单日期，距离价保周期确实比较久了，无法再为您提供价保服务。<br><br>
-（若客户抱怨联系时效，或吐槽一直没联系，请优先参考话术解释安抚。若客户不接受，可赠送品牌周边礼品）<br>
-我们也非常感谢您的耐心等待与理解。我特地为您申请了一份精美的品牌周边礼品。这就为您安排邮寄。您看可以吗？<br>
-</div><br>
-
-<div style="color:#2563EB;font-weight:bold;">场景三. 用户接受周边，但又要求更多补偿</div>
-<div style="background:#f9fafb;padding:6px;border-radius:4px;">
-话术：您的心情我完全理解，也特别能感同身受。但咱们订单购买的时间比较早，也确实是提前享受到产品了。<br>
-目前为您申请的品牌周边礼品，是我们尽力为您申请到的补偿了。衷心希望您能理解。咱们结束通话后，我就去为您安排邮寄礼品，您看可以吗？
-</div><br>
-
-<div style="color:#2563EB;font-weight:bold;">场景四. 用户接受周边礼品</div>
-<div style="background:#f9fafb;padding:6px;border-radius:4px;">
-话术：好的，非常感谢您的理解，也希望您能继续支持大疆。<br>
-如果您在后续使用产品的过程中有任何其他疑问或需要帮助的地方，欢迎您随时联系我们。再次感谢您的理解，祝您生活愉快！
+X先生/女士，我们非常希望帮您解决问题，但鉴于您持续辱骂的不文明行为，我们已无法与您正常沟通，为了不占用其他客户的等待时间，我将结束当前对话。<br>
+后续如果您希望沟通产品使用和技术咨询方面的问题，可以再次联系我们。感谢您的理解。<br>
 </div>
 `,
 
@@ -547,6 +539,156 @@ XX先生/女士，您好。我是为您处理价保咨询的服务专员XXX（�
 `
 
 };
+
+
+const l2Scheme = {
+    "电话未接通": `
+<div style="color:#2563EB;font-weight:bold;">思路</div>
+<div style="background:#f0f9ff;padding:8px;border-radius:6px;">
+人工主动发短信
+</div>
+<div style="color:#2563EB;font-weight:bold;margin-top:8px;">短信模板</div>
+<div style="background:#f9fafb;padding:8px;border-radius:6px;line-height:1.6;">
+尊敬的客户您好，我是为您处理价保咨询的服务专员。刚才多次尝试联系您但未成功。<br>
+我们非常理解您对价格变动的关注，也很重视您的订单。但很抱歉，经过多次核查，您的订单时间已经超出活动价保周期，本次我们确实无法为您提供价保服务，衷心希望您能理解。<br>
+如果您需要其他帮助，欢迎通过“大疆”公众号联系我们，我们会竭诚为您提供服务，感谢您的支持。
+</div>
+`,
+
+    "电话已接通": `
+<div style="color:#2563EB;font-weight:bold;">思路</div>
+<div style="background:#f0f9ff;padding:8px;border-radius:6px;">
+主动说明没有及时联系的原因并致歉，告知没价保并重点安抚情绪。<br>
+若客户抱怨联系时效/吐槽一直没联系，请优先使用解释+安抚话术。<br>
+若客户不接受，可赠送品牌周边礼品。话术①②③适用场景一致，按需使用。
+</div>
+<div style="color:#2563EB;font-weight:bold;margin-top:8px;">话术①</div>
+<div style="background:#f9fafb;padding:8px;border-radius:6px;line-height:1.6;">
+XX先生/女士，您好。我是为您处理价保咨询的服务专员XXX（工号xx）。双十一的订单量比较多，咱们服务专员也是在轮班加急处理。非常抱歉没能及时跟您联系。<br>
+我们很重视您的订单，并且多次核查了相关信息。这个订单已经超出活动价保周期，我们确实无法为您提供价保服务了，衷心希望您能理解。<br>
+（若客户抱怨联系时效，或吐槽一直没联系，请优先参考话术解释安抚。若客户不接受，可赠送品牌周边礼品）<br>
+非常感谢您对我们的支持，我们特地为您申请了一份精美的品牌周边礼品。这边尽快为您安排邮寄。您看可以吗？
+</div>
+<div style="color:#2563EB;font-weight:bold;margin-top:8px;">话术②</div>
+<div style="background:#f9fafb;padding:8px;border-radius:6px;line-height:1.6;">
+XX先生/女士，您好。我是为您处理价保咨询的服务专员XXX（工号xx）。这边多次核实了您的订单，已经超出活动价保周期，没办法为您提供价保服务了。衷心希望您能理解。<br>
+双十一的订单量比较多，咱们服务专员也在尽全力加速处理。没能及时跟您联系，实在抱歉。<br>
+（若客户抱怨联系时效，或吐槽一直没联系，请优先参考话术解释安抚。若客户不接受，可赠送品牌周边礼品）<br>
+我们非常重视您的反馈，我也想为您赠送一份精美的品牌周边礼品。您看可以的话，我尽快为您安排邮寄。
+</div>
+<div style="color:#2563EB;font-weight:bold;margin-top:8px;">话术③</div>
+<div style="background:#f9fafb;padding:8px;border-radius:6px;line-height:1.6;">
+XX先生/女士，您好。我是为您处理价保咨询的服务专员XXX（工号xx）。很抱歉现在才联系您。这次活动非常火爆，服务专员也是在加班加点处理咱们客户的咨询。<br>
+这边反复核查了您的订单日期，距离价保周期确实比较久了，无法再为您提供价保服务。<br>
+（若客户抱怨联系时效，或吐槽一直没联系，请优先参考话术解释安抚。若客户不接受，可赠送品牌周边礼品）<br>
+我们也非常感谢您的耐心等待与理解。我特地为您申请了一份精美的品牌周边礼品。这就为您安排邮寄。您看可以吗？
+</div>
+`,
+
+    "用户接受周边，但要求更多补偿": `
+<div style="background:#fff7ed;padding:8px;border-radius:6px;line-height:1.6;color:#b45309;">
+您的心情我完全理解，也特别能感同身受。但咱们订单购买的时间比较早，也确实是提前享受到产品了。<br>
+目前为您申请的品牌周边礼品，是我们尽力为您申请到的补偿了。衷心希望您能理解。<br>
+咱们结束通话后，我就去为您安排邮寄礼品，您看可以吗？
+</div>
+`,
+
+    "用户接受周边礼品": `
+<div style="background:#f0fdf4;padding:8px;border-radius:6px;line-height:1.6;color:#166534;">
+好的，非常感谢您的理解，也希望您能继续支持大疆。<br>
+如果您在后续使用产品的过程中有任何其他疑问或需要帮助的地方，欢迎您随时联系我们。<br>
+再次感谢您的理解，祝您生活愉快！
+</div>
+`,
+
+    "特殊场景--霸线客户": `
+<div style="color:#dc2626;font-weight:bold;">处理原则</div>
+<div style="background:#fef2f2;padding:8px;border-radius:6px;line-height:1.6;">
+1. 如遇到明确表示恶意霸线场景（霸线≥15分钟），按如下思路和沟通节奏处理，然后走礼貌挂机流程（需报备TL，并登记至：
+<a href="https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA" target="_blank">https://docs.djicorp.com/weboffice/l/sd17qDgMfB0nA</a>）。<br>
+<div style="color:#dc2626;font-weight:bold;">注意：风险场景不要强制挂断电话！</div>
+2. 升级客诉规范：<br>
+① 无风险场景尽量拦截，按照话术及方案澄清价保原则，告知有方案/无方案，不升级客诉。<br>
+② 如遇如下场景，可升级客诉处理（注：搜集客户姓名、电话、及客户信息升级客诉（客诉标签选择：电商-活动争议））。<br>
+客诉团队选择：除TP和维音客诉升级到LM消费客诉团队，其余团队接到客诉问题升级到自己所在团队的客诉（支援人员建的投诉案例，放在支援团队名下）。
+</div>
+    <img src="https://terra-1-g.djicdn.com/eb222cbc4f4345e3a134199bab1f0894/133e3d7877f049769d11309b0ed71664.png"
+         style="max-width:100%;height:auto;margin:0;padding:0;">
+
+<div style="color:#FF0000;"><b>【处理思路】</b></div>
+
+<!-- 类型一：线上订单 -->
+<div style="border:2px solid #fca5a5;background:#fff5f5;border-radius:8px;padding:14px;margin-bottom:18px;">
+  <div style="color:#FF0000;font-weight:bold;font-size:16px;">类型一：线上订单</div>
+
+  <!-- 官方渠道购买 -->
+  <div style="border:1px solid #fecaca;background:#ffffff;border-radius:6px;padding:10px;margin-top:10px;">
+    <div style="color:#FF0000;font-weight:bold;">【参考话术】霸线话术 -- 线上官方渠道购买</div>
+
+    <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第一次沟通--5分钟预警话术：</div>
+    <div style="color:#000;">XX先生/女士，您的心情我完全理解，确实超出活动价保周期的情况会让您感到难受，但也帮您核查到由于您的订单已超过价保政策时间太久，所以也遗憾无法为您提供价保服务或退差价，辛苦您也可以谅解。</div>
+
+    <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第二次主导沟通--10分钟再次强调价保话术：</div>
+    <div style="color:#000;">非常理解您的心情，这边看到您的订单时间是XX。您提前购买了产品，也能记录更多独一无二的精彩时刻。但这个订单已经超出双11活动价保时效很长时间了，抱歉确实无法为您提供价保服务或退差价。</div>
+
+    <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第三次礼貌挂机--15分钟礼貌挂机：</div>
+    <div style="color:#000;">我们非常希望能协助您解决问题，但目前您的订单因超过价保时效很久，无法再进行价保，衷心希望您可以理解。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。</div>
+  </div>
+
+  <!-- 线上非官方渠道购买 -->
+  <div style="border:1px solid #fecaca;background:#ffffff;border-radius:6px;padding:10px;margin-top:10px;">
+    <div style="color:#FF0000;font-weight:bold;">【参考话术】霸线话术 -- 线上非官方渠道购买</div>
+
+    <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第一次沟通--5分钟预警话术：</div>
+    <div style="color:#000;">您好，查询到您的产品不是从官方渠道购买，为了确保您能享受到最佳的售后服务和保障，我们建议您先联系购买店铺进行咨询和处理。感谢您的理解。</div>
+
+    <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第二次主导沟通--10分钟再次强调价保话术：</div>
+    <div style="color:#000;">我非常理解您的心情，但由于不同渠道的活动政策可能会有所差异，我们无法直接为您提供价保服务。还请您联系购买店铺进行协商处理。</div>
+
+    <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第三次礼貌挂机--15分钟礼貌挂机：</div>
+    <div style="color:#000;">明白您的诉求，我们也非常希望能协助您。但非官方渠道购买的产品，我们确实无法为您处理价需求。还是麻烦您和店铺直接联系，这样能尽量节省您的时间，您的诉求也能得到尽快处理。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。</div>
+  </div>
+</div>
+
+<!-- 类型二：线下订单 -->
+<div style="border:2px solid #fca5a5;background:#fff5f5;border-radius:8px;padding:14px;">
+  <div style="color:#FF0000;font-weight:bold;font-size:16px;">类型二：线下订单</div>
+
+  <div style="color:#000;margin-top:1px;">请客户联系门店协商处理，并登记在表格中 
+    <a href="https://docs.djicorp.com/weboffice/l/ckJUyBPOSNn4" target="_blank">
+      https://docs.djicorp.com/weboffice/l/ckJUyBPOSNn4
+    </a>
+  </div>
+
+  <div style="color:#000;margin-top:1px;">搜集信息模板：</div>
+  <div style="color:#000;">【购买门店】：省市+门店具体名称</div>
+  <div style="color:#000;">【购买产品型号】：</div>
+  <div style="color:#000;">【产品SN】：</div>
+  <div style="color:#000;">【姓名】：</div>
+  <div style="color:#000;">【联系方式】：电话</div>
+  <div style="color:#000;">【购买凭证】：</div>
+
+  <div style="color:#FF0000;font-weight:bold;margin-top:10px;">【参考话术】霸线话术</div>
+
+  <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第一次沟通--5分钟预警话术：</div>
+  <div style="color:#000;">您好，查询到您的产品不是从线上官方渠道购买，为了确保您能享受到最佳的售后服务和保障，我们建议您先联系购买店铺进行咨询和处理。感谢您的理解。</div>
+
+  <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第二次主导沟通--10分钟再次强调价保话术：</div>
+  <div style="color:#000;">我非常理解您的心情，但由于不同渠道的活动政策可能会有所差异，我们无法直接为您提供价保服务。还请您联系购买店铺进行协商处理。</div>
+
+  <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第三次礼貌挂机--15分钟礼貌挂机：非授权门店：</div>
+  <div style="color:#000;">明白您的诉求，我们也非常希望能协助您。但非官方渠道购买的产品，我们确实无法为您处理价保需求。还是麻烦您和门店直接联系，这样能尽量节省您的时间，您的诉求也能得到尽快处理。如果您后续还有其他问题，欢迎您随时联系我们。先不打扰您了，祝您生活愉快，再见。</div>
+
+  <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第三次礼貌挂机--15分钟礼貌挂机：授权门店（除山姆门店）：</div>
+  <div style="color:#000;">明白您的诉求，作为消费者我也非常理解您此刻的感受，我会帮您详细记录并及时转达给门店，确保门店能了解情况并和您沟通，您这边请保持电话畅通，耐心等待下工作人员和您联系，也特别感谢您的耐心和理解，祝您生活愉快，再见。</div>
+
+  <div style="color:#FF0000;font-weight:bold;margin-top:6px;">第三次礼貌挂机--15分钟礼貌挂机：授权门店（山姆门店）</div>
+  <div style="color:#000;">明白您的诉求了，为保障山姆真实零售会员的权益，非常抱歉我们无法将您的私人信息及诉求转达给门店。请您直接到山姆门店咨询品牌促销员及电器区域人员。感谢您的耐心和理解，祝您生活愉快，再见。</div>
+</div>
+`
+};
+
+
 
 
 const offlineScheme = {
@@ -1059,68 +1201,41 @@ function setChannel(channel) {
   const outputBox = document.getElementById('output');
   outputBox.innerHTML = '';
   outputBox.style.display = 'none';
-
   currentChannel = channel;
 
-  // 顶部按钮态
   document.getElementById('btnOnline').classList.toggle('active', channel === '线上');
   document.getElementById('btnOffline').classList.toggle('active', channel === '线下');
   document.getElementById('btnSpecial').classList.toggle('active', channel === '特殊场景');
+  document.getElementById('btnL2').classList.toggle('active', channel === '客诉L2外呼');
+
+  // 统一先隐藏所有模块
+  document.getElementById('onlineChannelBox').style.display = 'none';
+  document.getElementById('offlineChannelBox').style.display = 'none';
+  document.getElementById('offlineDateRangeBox').style.display = 'none';
+  document.getElementById('productBox').style.display = 'none';
+  document.getElementById('payDateBox').style.display = 'none';
+  document.getElementById('applyDateBox').style.display = 'none';
+  document.getElementById('versionBox').style.display = 'none';
+  document.getElementById('refurbPayRangeBox').style.display = 'none';
+  document.getElementById('refurbApplyRangeBox').style.display = 'none';
+  document.getElementById('specialBox').style.display = 'none';
+  document.getElementById('l2Box').style.display = 'none'; // 确保默认隐藏
 
   if (channel === "线上") {
-    // 显示线上渠道盒子，隐藏线下与特殊场景盒子
-    document.getElementById('onlineChannelBox').style.display = 'block';
-    document.getElementById('offlineChannelBox').style.display = 'none';
-    document.getElementById('offlineDateRangeBox').style.display = 'none';
-    document.getElementById('specialBox').style.display = 'none';
-
-    // 默认隐藏产品与时间控件（按渠道二次显示）
-    document.getElementById('productBox').style.display = 'none';
-    document.getElementById('payDateBox').style.display = 'none';
-    document.getElementById('applyDateBox').style.display = 'none';
-    document.getElementById('versionBox').style.display = 'none';
-    document.getElementById('refurbPayRangeBox').style.display = 'none';
-    document.getElementById('refurbApplyRangeBox').style.display = 'none';
-
-    const val = document.getElementById('onlineChannel').value;
-
-    if (val === '官方渠道') {
-      updateProductOptions(onlineProducts);
-      document.getElementById('productBox').style.display = 'block';
-      document.getElementById('payDateBox').style.display = 'block';
-      document.getElementById('applyDateBox').style.display = 'block';
-    } else if (val === '官网商城-翻新机') {
-      updateProductOptions(refurbProducts);
-      document.getElementById('productBox').style.display = 'block';
-      document.getElementById('versionBox').style.display = 'block';
-      document.getElementById('refurbPayRangeBox').style.display = 'block';
-      document.getElementById('refurbApplyRangeBox').style.display = 'block';
-    }
-
+      document.getElementById('onlineChannelBox').style.display = 'block';
   } else if (channel === "线下") {
-    document.getElementById('onlineChannelBox').style.display = 'none';
-    document.getElementById('productBox').style.display = 'block';
-    document.getElementById('payDateBox').style.display = 'none';
-    document.getElementById('applyDateBox').style.display = 'none';
-    document.getElementById('offlineChannelBox').style.display = 'block';
-    document.getElementById('offlineDateRangeBox').style.display = 'block';
-    document.getElementById('specialBox').style.display = 'none';
-    document.getElementById('versionBox').style.display = 'none';
-    document.getElementById('refurbPayRangeBox').style.display = 'none';
-    document.getElementById('refurbApplyRangeBox').style.display = 'none';
-    updateProductOptions(offlineProducts);
+      document.getElementById('productBox').style.display = 'block';
+      document.getElementById('offlineChannelBox').style.display = 'block';
+      document.getElementById('offlineDateRangeBox').style.display = 'block';
+      updateProductOptions(offlineProducts);
+const productVal = document.getElementById('product').value;
+    updateOfflineChannelOptions(productVal);
+
 
   } else if (channel === "特殊场景") {
-    document.getElementById('onlineChannelBox').style.display = 'none';
-    document.getElementById('offlineChannelBox').style.display = 'none';
-    document.getElementById('offlineDateRangeBox').style.display = 'none';
-    document.getElementById('productBox').style.display = 'none';
-    document.getElementById('payDateBox').style.display = 'none';
-    document.getElementById('applyDateBox').style.display = 'none';
-    document.getElementById('versionBox').style.display = 'none';
-    document.getElementById('refurbPayRangeBox').style.display = 'none';
-    document.getElementById('refurbApplyRangeBox').style.display = 'none';
-    document.getElementById('specialBox').style.display = 'block';
+      document.getElementById('specialBox').style.display = 'block';
+  } else if (channel === "客诉L2外呼") {
+      document.getElementById('l2Box').style.display = 'block'; // 只在客诉L2外呼显示
   }
 }
 document.getElementById('onlineChannel').addEventListener('change', function(){
@@ -1259,6 +1374,18 @@ const block2 = `
 
 function showResult(){
   let result = "";
+
+
+
+if (currentChannel === "客诉L2外呼") {
+    const scenario = document.getElementById('l2Scenario').value;
+    if (!scenario) { alert("请选择场景"); return; }
+    result = l2Scheme[scenario] || "暂无该场景话术";
+    document.getElementById('output').innerHTML = result;
+    document.getElementById('output').style.display = 'block';
+    return;
+}
+
 
   // 特殊场景：显示话术
   if (currentChannel === "特殊场景") {
