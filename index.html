@@ -134,6 +134,8 @@
         <option value="snRefurbished">客户询问 5wtcn 开头的序列号SN是不是翻新机？(或：客户收到的产品有外观瑕疵，质疑大疆售卖翻新机，存在质量问题)</option>
         <option value="malicious abuse">若客户恶意语言中伤或辱骂，无法正常沟通，参考如下话术礼貌挂机</option>
         <option value="Official Account">部分公众号/媒体发文或报道大疆双十一降价的事情。客户 (非媒体身份) 进线咨询。如何应对？</option>
+        <option value="Order meets price guarantee">客户订单符合价保，但因产品无货导致价保超期，需要申请仅退款退全额差价，此类仅退款订单处理时效较长</option>
+        <option value="Request a return and refund">客户申请退货退款，产品退回后因为工厂积压签收后无法及时检测回传，由于退款时效问题会优先拒单</option>
         <!-- 后续可继续加其他场景 -->
 
     </select>
@@ -523,6 +525,28 @@ X先生/女士，我们非常希望帮您解决问题，但鉴于您持续辱骂
 后续如果您希望沟通产品使用和技术咨询方面的问题，可以再次联系我们。感谢您的理解。<br>
 </div>
 `,
+
+
+"Order meets price guarantee": `
+<div style="color:#2563EB;font-weight:bold;">参考话术</div>
+<div style="background:#f9fafb;padding:6px;border-radius:4px;line-height:1.5;">
+1、双十一的订单热度远超预期，部分机型库存无货导致价保申请可能超时，我们已安排专人加急处理您的仅退款申请，可能需要一些时间，请您再耐心等待下呢~<br><br>
+2、因为产品无货导致您的订单需要人工帮您处理的，已经安排专人在轮班处理您的价保申请啦，还请再多给我们一点点时间呢~<br><br>
+3、看到您的价保申请时我们也特别着急的，感动您对我们的支持呢，目前已经协调专人在 24 小时轮班处理了，您可以在 <a href="https://my.dji.com/orders?from=site-nav&appId=store" target="_blank" style="color:#2563EB;text-decoration:underline;">我的订单</a> 页刷新状态查看进度呢。这次是我们准备不足，还请您谅解呢。
+`,
+
+"Request a return and refund": `
+<div style="color:#2563EB;font-weight:bold;">参考话术</div>
+<div style="background:#f9fafb;padding:6px;border-radius:4px;line-height:1.5;">
+<strong style="color:#E67E22;">天猫、抖音：</strong><br>
+您好，因双十一订单量激增，售后处理节奏短期内受到影响，由此给您带来不便，我们深表歉意。为避免仓库检测前的误判与遗漏，我们可能会对少量退款申请先行做暂时拒绝，待仓库完成核验后（签收后 1–5 个工作日内），会主动为您退款（拒绝后7天内商家有直接退款选项），请您放心。<br>
+我们非常重视您的体验，您的售后诉求已经在持续处理中；对由此带来的不便，我们再次致歉，感谢您的包容与理解。<br><br>
+<strong style="color:#E67E22;">DJI官方商城、京东POP：</strong><br>
+您好，因双十一订单量激增，售后处理节奏短期内受到影响，由此给您带来不便，我们深表歉意。为避免仓库检测前的误判与遗漏，我们可能会对少量退款申请先行做暂时拒绝，待仓库完成核验后（签收后 1–5 个工作日内），欢迎您重新提交退款申请，我们将尽快为您处理。<br>
+我们非常重视您的体验，您的售后诉求已经在持续处理中；对由此带来的不便，我们再次致歉，感谢您的包容与理解。
+</div>
+`,
+
 
 "Official Account": `
 <div style="color:#2563EB;font-weight:bold;">参考话术</div>
