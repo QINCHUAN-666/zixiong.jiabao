@@ -1489,6 +1489,16 @@ if (onlineChannel === '官网商城-翻新机') {
       if (isNaN(payDate) || isNaN(applyDate)) { alert("日期格式不正确！"); return; }
       if (applyDate < payDate) { alert("申请时间早于支付时间"); return; }
 
+
+// 9月9日之前的订单不价保
+const sept9Start = new Date(payDate.getFullYear(), 8, 9, 0, 0, 0); // 月索引8代表9月
+if (payDate < sept9Start) {
+    document.getElementById('output').innerHTML = 
+      "抱歉，您的订单支付时间为 9 月 9 日之前，不符合价保条件。若客户反馈时间在30天内，单独反馈给o-zake.li";
+    document.getElementById('output').style.display = 'block';
+    return;
+}
+
       // 10月9日活动已开启不涉及价保
       const activityCutoff = new Date(payDate.getFullYear(), 9, 9, 0, 0, 0); // 10月索引为9
       if (payDate >= activityCutoff) {
